@@ -4,6 +4,7 @@
   color: #eef1ff;
 }
 
+/* Базовый reset и фон страницы */
 * {
   box-sizing: border-box;
 }
@@ -14,6 +15,7 @@ body {
   color: #eef1ff;
 }
 
+/* Главный слой приложения + позиционирование фона */
 .app {
   min-height: 100vh;
   position: relative;
@@ -29,6 +31,7 @@ body {
   background: radial-gradient(circle at 50% 50%, #0f1642, #080b1a 60%);
 }
 
+/* Основная "стеклянная" панель с контентом */
 .panel {
   /* Главная стеклянная карточка приложения */
   position: relative;
@@ -41,6 +44,7 @@ body {
   padding: 24px;
 }
 
+/* Заголовок и описание приложения */
 h1 {
   margin: 0 0 8px;
   text-align: center;
@@ -55,6 +59,7 @@ h1 {
   max-width: 680px;
 }
 
+/* Сетка карточек с балансами и итогами */
 .container {
   /* Сетка верхних карточек с балансами */
   display: grid;
@@ -62,6 +67,7 @@ h1 {
   gap: 16px;
 }
 
+/* Базовая карточка финансового показателя */
 .card {
   border-radius: 16px;
   background: rgba(16, 24, 52, 0.86);
@@ -104,6 +110,7 @@ h1 {
   border-color: rgba(124, 255, 103, 0.64);
 }
 
+/* Блок действий и список расходов */
 .btn-container {
   /* Кнопки добавления дохода/расхода */
   display: flex;
@@ -140,6 +147,7 @@ h1 {
   gap: 16px;
 }
 
+/* Карточка отдельного расхода */
 .expense-item {
   background: rgba(16, 24, 52, 0.86);
   border: 1px solid rgba(146, 164, 255, 0.25);
@@ -175,6 +183,7 @@ h1 {
   background: linear-gradient(145deg, #5f73ff, #4456d9);
 }
 
+/* Общие стили интерактивных элементов */
 button,
 input,
 select {
@@ -212,6 +221,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Варианты кнопок по назначению */
 .add-income {
   background: linear-gradient(145deg, #2bda7c, #0ea960);
 }
@@ -224,6 +234,7 @@ button:disabled {
   background: rgba(156, 173, 255, 0.22);
 }
 
+/* Модальное окно и форма внутри него */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -299,6 +310,7 @@ button:disabled {
   color: #ff8ca4;
 }
 
+/* Адаптив: уменьшаем отступы и размеры на мобильных */
 @media (max-width: 640px) {
   .app,
   .panel,

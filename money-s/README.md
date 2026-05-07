@@ -1,16 +1,69 @@
-# React + Vite
+# Money's - трекер бюджета
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Простое React-приложение для учета личных денег: добавление доходов и расходов, распределение средств по счетам и просмотр текущих итогов.
 
-Currently, two official plugins are available:
+## Что умеет приложение
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Вести 3 баланса: `Основной`, `Подарки`, `На черный день`.
+- Добавлять доход с автоматическим распределением:
+  - 10% на подарки (опционально),
+  - 10% в резерв (опционально),
+  - остальное в основной баланс.
+- Добавлять расходы с выбором источника списания и важности.
+- Показывать историю расходов в карточках.
+- Считать месячные итоги: доходы, расходы и сумму всех счетов.
 
-## React Compiler
+## Стек
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React
+- Vite
+- CSS (без UI-библиотек)
 
-## Expanding the ESLint configuration
+## Быстрый старт
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Установить зависимости:
+
+```bash
+npm install
+```
+
+2. Запустить проект в dev-режиме:
+
+```bash
+npm run dev
+```
+
+3. Открыть ссылку из терминала (обычно `http://localhost:5173`).
+
+## Скрипты
+
+- `npm run dev` - запуск локального dev-сервера
+- `npm run build` - production-сборка
+- `npm run preview` - просмотр собранной версии
+- `npm run lint` - проверка ESLint
+
+## Структура проекта
+
+```text
+money-s/
+  src/
+    components/
+      Aurora.jsx      # декоративный анимированный фон
+    App.jsx           # основная логика финансов и формы
+    App.css           # стили интерфейса
+    main.jsx          # точка входа React
+```
+
+## Логика распределения денег
+
+- Доход увеличивает `Доходы за месяц`.
+- Расход увеличивает `Расходы за месяц`.
+- При добавлении расхода деньги списываются только с выбранного счета.
+- Кнопка `Выполнено` в карточке расхода удаляет запись из списка, но не возвращает деньги назад на счет.
+
+## Идеи для развития
+
+- Сохранение данных в `localStorage` или базе данных.
+- Фильтры и поиск по расходам.
+- Категории расходов и графики.
+- Авторизация для нескольких пользователей.

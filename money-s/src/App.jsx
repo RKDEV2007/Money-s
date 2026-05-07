@@ -8,14 +8,16 @@ function formatRub(value) {
 }
 
 function App() {
-  // Основные суммы по кошелькам
+  // --- Финансовые состояния приложения ---
+  // Три "кошелька" + агрегаты по месяцу.
   const [mainBalance, setMainBalance] = useState(29500);
   const [giftBalance, setGiftBalance] = useState(4000);
   const [rainyBalance, setRainyBalance] = useState(4000);
   const [incomeTotal, setIncomeTotal] = useState(40000);
   const [expenseTotal, setExpenseTotal] = useState(2500);
 
-  // Состояния для модалки и полей формы
+  // --- UI-состояния формы и модального окна ---
+  // activeModal: '' | 'income' | 'expense'
   const [activeModal, setActiveModal] = useState('');
   const [incomeAmount, setIncomeAmount] = useState('');
   const [expenseName, setExpenseName] = useState('');
@@ -26,11 +28,13 @@ function App() {
   const [expenseSource, setExpenseSource] = useState('main');
   const [error, setError] = useState('');
 
-  // Список добавленных расходов (карточки снизу)
+  // Список пользовательских расходов для карточек "Расходы"
   const [expenseItems, setExpenseItems] = useState([]);
 
+  // Общая сумма на всех счетах (индикатор "Доступно всего")
   const availableToSpend = mainBalance + giftBalance + rainyBalance;
 
+  // Сбрасываем модалку и очищаем поля формы после закрытия/успешной отправки.
   function closeModal() {
     setActiveModal('');
     setIncomeAmount('');
@@ -59,6 +63,8 @@ function App() {
       return;
     }
 
+    // Распределение дохода:
+    // 10% в подарки и/или 10% в резерв, остальное в основной счет.
     const toGifts = saveToGifts ? amount * 0.1 : 0;
     const toRainy = saveToRainyDay ? amount * 0.1 : 0;
     const toMain = amount - toGifts - toRainy;
@@ -92,6 +98,7 @@ function App() {
       return;
     }
 
+    // Сначала валидируем источник списания, затем уменьшаем соответствующий баланс.
     if (expenseSource === 'main') {
       if (mainBalance < amount) {
         setError('На выбранном счете недостаточно средств.');
@@ -117,7 +124,7 @@ function App() {
     }
 
     setExpenseTotal((prev) => prev + amount);
-    // Добавляем новую карточку расхода в начало списка
+    // Добавляем новую карточку расхода в начало списка, чтобы новые были сверху.
     setExpenseItems((prev) => [
       {
         id: Date.now(),
@@ -132,20 +139,21 @@ function App() {
     closeModal();
   }
 
-  // Для карточек показываем понятное название счета
+  // Для карточек расходов: переводим внутренний ключ счета в понятное название.
   function getSourceLabel(source) {
     if (source === 'gifts') return 'Подарки';
     if (source === 'rainyDay') return 'На черный день';
     return 'Основной баланс';
   }
 
-  // Удаляем только карточку из списка, деньги не трогаем
+  // "Выполнено" убирает карточку из списка, но не возвращает деньги в баланс.
   function handleCompleteExpense(expenseId) {
     setExpenseItems((prev) => prev.filter((item) => item.id !== expenseId));
   }
 
   return (
     <main className="app">
+      {/* Декоративный анимированный фон, не несет смысловой нагрузки */}
       <div className="aurora-wrap" aria-hidden="true">
         <Aurora
           colorStops={['#5227FF', '#7cff67', '#5227FF']}
@@ -155,6 +163,7 @@ function App() {
       </div>
 
       <section className="panel">
+        {/* Верхняя часть: общий заголовок и карточки сводной финансовой информации */}
         <h1>Money&apos;s — ваш трекер бюджета</h1>
         <p className="subtitle">
           Управляйте доходами и расходами, распределяйте деньги на подарки и
@@ -200,6 +209,7 @@ function App() {
         </div>
 
         <div className="btn-container">
+          {/* Кнопки открывают соответствующие формы в модальном окне */}
           <button className="add-income" type="button" onClick={openIncomeModal}>
             Добавить доход
           </button>
@@ -208,7 +218,7 @@ function App() {
           </button>
         </div>
 
-        {/* Блок с карточками расходов снизу кнопок */}
+        {/* Нижний блок: история добавленных расходов */}
         <section className="expense-list-section" aria-label="Список расходов">
           <h3 className="expense-list-title">Расходы</h3>
 
@@ -251,6 +261,7 @@ function App() {
               {activeModal === 'income' ? 'Новый доход' : 'Новый расход'}
             </h3>
 
+            {/* Один модальный контейнер, внутри выбираем форму по типу activeModal */}
             {activeModal === 'income' ? (
               <form onSubmit={handleIncomeSubmit}>
                 <label htmlFor="income-input">Сумма дохода</label>
