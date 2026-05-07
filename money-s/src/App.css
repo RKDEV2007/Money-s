@@ -1,0 +1,312 @@
+:root {
+  /* Базовый шрифт и цвет текста для всего приложения */
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  color: #eef1ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #080b1a;
+  color: #eef1ff;
+}
+
+.app {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+}
+
+.aurora-wrap {
+  position: absolute;
+  inset: -10%;
+  background: radial-gradient(circle at 50% 50%, #0f1642, #080b1a 60%);
+}
+
+.panel {
+  /* Главная стеклянная карточка приложения */
+  position: relative;
+  z-index: 1;
+  width: min(1080px, 100%);
+  border: 1px solid rgba(156, 173, 255, 0.28);
+  border-radius: 24px;
+  background: rgba(10, 15, 35, 0.76);
+  backdrop-filter: blur(8px);
+  padding: 24px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: clamp(24px, 4vw, 36px);
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin: 0 auto 24px;
+  text-align: center;
+  color: #b8c4ff;
+  max-width: 680px;
+}
+
+.container {
+  /* Сетка верхних карточек с балансами */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  border-radius: 16px;
+  background: rgba(16, 24, 52, 0.86);
+  border: 1px solid rgba(146, 164, 255, 0.25);
+  padding: 16px;
+  min-height: 164px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124, 255, 103, 0.6);
+  box-shadow: 0 12px 30px rgba(30, 74, 255, 0.22);
+}
+
+.card p {
+  margin: 0;
+  color: #bec9ff;
+}
+
+.card h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.card span {
+  font-size: 14px;
+  color: #96a7ff;
+}
+
+.card.accent {
+  background: linear-gradient(155deg, rgba(82, 39, 255, 0.64), rgba(124, 255, 103, 0.2));
+  border-color: rgba(124, 255, 103, 0.64);
+}
+
+.btn-container {
+  /* Кнопки добавления дохода/расхода */
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.expense-list-section {
+  /* Блок расходов под кнопками */
+  margin-top: 24px;
+}
+
+.expense-list-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  text-align: center;
+}
+
+.expense-empty {
+  margin: 0;
+  text-align: center;
+  color: #bec9ff;
+  background: rgba(16, 24, 52, 0.7);
+  border: 1px solid rgba(146, 164, 255, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.expense-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.expense-item {
+  background: rgba(16, 24, 52, 0.86);
+  border: 1px solid rgba(146, 164, 255, 0.25);
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.expense-item-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.expense-item-amount {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ff9fb3;
+}
+
+.expense-item-meta {
+  margin: 0;
+  color: #c7d2ff;
+}
+
+.done-expense {
+  /* Кнопка завершения расхода в карточке */
+  margin-top: 8px;
+  width: 100%;
+  background: linear-gradient(145deg, #5f73ff, #4456d9);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  min-height: 44px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 180ms ease, filter 180ms ease, box-shadow 180ms ease;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(124, 255, 103, 0.85), 0 0 0 4px rgba(12, 17, 40, 0.9);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-income {
+  background: linear-gradient(145deg, #2bda7c, #0ea960);
+}
+
+.add-outcome {
+  background: linear-gradient(145deg, #fb4f78, #dd2154);
+}
+
+.ghost {
+  background: rgba(156, 173, 255, 0.22);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(2, 5, 16, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.modal {
+  /* Модальное окно с формой добавления */
+  width: min(520px, 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(150, 165, 245, 0.35);
+  background: rgba(10, 14, 34, 0.95);
+  padding: 24px;
+}
+
+.modal h3 {
+  margin: 0 0 16px;
+  font-size: 24px;
+}
+
+.modal form {
+  display: grid;
+  gap: 16px;
+}
+
+.modal label {
+  display: grid;
+  gap: 8px;
+  color: #d4dcff;
+}
+
+.modal input,
+.modal select {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(150, 165, 245, 0.4);
+  background: rgba(20, 27, 58, 0.95);
+  color: #f4f6ff;
+  padding: 12px;
+}
+
+.checkbox-list {
+  display: grid;
+  gap: 8px;
+}
+
+.checkbox-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkbox-list input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  min-height: auto;
+  accent-color: #7cff67;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.error {
+  margin: 0;
+  color: #ff8ca4;
+}
+
+@media (max-width: 640px) {
+  .app,
+  .panel,
+  .modal-backdrop {
+    padding: 16px;
+  }
+
+  .card h2 {
+    font-size: 24px;
+  }
+}

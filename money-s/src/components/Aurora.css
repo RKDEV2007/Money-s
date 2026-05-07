@@ -1,0 +1,29 @@
+.aurora {
+  position: absolute;
+  inset: 0;
+  background-image: var(--aurora-gradient);
+  filter: blur(calc(36px * var(--aurora-amplitude)));
+  mix-blend-mode: screen;
+  opacity: var(--aurora-blend);
+  animation: auroraShift 14s ease-in-out infinite alternate;
+  transform: scale(1.1);
+  pointer-events: none;
+}
+
+@keyframes auroraShift {
+  0% {
+    transform: translate3d(-3%, -1%, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(2%, 2%, 0) scale(1.15);
+  }
+  100% {
+    transform: translate3d(0, -2%, 0) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora {
+    animation: none;
+  }
+}
