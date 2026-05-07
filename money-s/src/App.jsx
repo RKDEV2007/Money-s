@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Aurora from './components/Aurora';
 import './App.css';
 
@@ -8,16 +8,30 @@ function formatRub(value) {
 }
 
 function App() {
+  // Загрузка данных из localStorage при инициализации
+  const loadFromStorage = (key, defaultValue) => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved !== null ? JSON.parse(saved) : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  };
+
   // --- Финансовые состояния приложения ---
   // Три "кошелька" + агрегаты по месяцу.
-  const [mainBalance, setMainBalance] = useState(29500);
-  const [giftBalance, setGiftBalance] = useState(4000);
-  const [rainyBalance, setRainyBalance] = useState(4000);
-  const [incomeTotal, setIncomeTotal] = useState(40000);
-  const [expenseTotal, setExpenseTotal] = useState(2500);
+  const [mainBalance, setMainBalance] = useState(() => loadFromStorage('mainBalance', 0));
+  const [giftBalance, setGiftBalance] = useState(() => loadFromStorage('giftBalance', 0));
+  const [rainyBalance, setRainyBalance] = useState(() => loadFromStorage('rainyBalance', 0));
+  const [incomeTotal, setIncomeTotal] = useState(() => loadFromStorage('incomeTotal', 0));
+  const [expenseTotal, setExpenseTotal] = useState(() => loadFromStorage('expenseTotal', 0));
+
+  // Настройки процентов для автоматического распределения
+  const [giftPercent, setGiftPercent] = useState(() => loadFromStorage('giftPercent', 10));
+  const [rainyPercent, setRainyPercent] = useState(() => loadFromStorage('rainyPercent', 10));
 
   // --- UI-состояния формы и модального окна ---
-  // activeModal: '' | 'income' | 'expense'
+  // activeModal: '' | 'income' | 'expense' | 'settings'
   const [activeModal, setActiveModal] = useState('');
   const [incomeAmount, setIncomeAmount] = useState('');
   const [expenseName, setExpenseName] = useState('');
@@ -29,20 +43,67 @@ function App() {
   const [error, setError] = useState('');
 
   // Список пользовательских расходов для карточек "Расходы"
-  const [expenseItems, setExpenseItems] = useState([]);
+  const [expenseItems, setExpenseItems] = useState(() => loadFromStorage('expenseItems', []));
+
+  // Сохранение данных в localStorage при изменении
+  useEffect(() => {
+    localStorage.setItem('mainBalance', JSON.stringify(mainBalance));
+  }, [mainBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('giftBalance', JSON.stringify(giftBalance));
+  }, [giftBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('rainyBalance', JSON.stringify(rainyBalance));
+  }, [rainyBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('incomeTotal', JSON.stringify(incomeTotal));
+  }, [incomeTotal]);
+
+  useEffect(() => {
+    localStorage.setItem('expenseTotal', JSON.stringify(expenseTotal));
+  }, [expenseTotal]);
+
+  useEffect(() => {
+    localStorage.setItem('expenseItems', JSON.stringify(expenseItems));
+  }, [expenseItems]);
+
+  useEffect(() => {
+    localStorage.setItem('giftPercent', JSON.stringify(giftPercent));
+  }, [giftPercent]);
+
+  useEffect(() => {
+    localStorage.setItem('rainyPercent', JSON.stringify(rainyPercent));
+  }, [rainyPercent]);
 
   // Общая сумма на всех счетах (индикатор "Доступно всего")
   const availableToSpend = mainBalance + giftBalance + rainyBalance;
 
   // Сбрасываем модалку и очищаем поля формы после закрытия/успешной отправки.
-  function closeModal() {
+  const closeModal = useCallback(() => {
     setActiveModal('');
     setIncomeAmount('');
     setExpenseName('');
     setExpenseAmount('');
     setExpensePriority('3');
     setError('');
-  }
+  }, []);
+
+  useEffect(() => {
+    if (!activeModal) return undefined;
+
+    function handleDocumentKeyDown(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeModal();
+      }
+    }
+
+    document.addEventListener('keydown', handleDocumentKeyDown);
+    return () => document.removeEventListener('keydown', handleDocumentKeyDown);
+  }, [activeModal, closeModal]);
 
   function openIncomeModal() {
     setError('');
@@ -52,6 +113,11 @@ function App() {
   function openExpenseModal() {
     setError('');
     setActiveModal('expense');
+  }
+
+  function openSettingsModal() {
+    setError('');
+    setActiveModal('settings');
   }
 
   function handleIncomeSubmit(event) {
@@ -64,9 +130,9 @@ function App() {
     }
 
     // Распределение дохода:
-    // 10% в подарки и/или 10% в резерв, остальное в основной счет.
-    const toGifts = saveToGifts ? amount * 0.1 : 0;
-    const toRainy = saveToRainyDay ? amount * 0.1 : 0;
+    // Используем настраиваемые проценты для подарков и резерва, остальное в основной счет.
+    const toGifts = saveToGifts ? amount * (giftPercent / 100) : 0;
+    const toRainy = saveToRainyDay ? amount * (rainyPercent / 100) : 0;
     const toMain = amount - toGifts - toRainy;
 
     setMainBalance((prev) => prev + toMain);
@@ -151,6 +217,49 @@ function App() {
     setExpenseItems((prev) => prev.filter((item) => item.id !== expenseId));
   }
 
+  function handleSettingsSubmit(event) {
+    event.preventDefault();
+    const gift = Number(giftPercent);
+    const rainy = Number(rainyPercent);
+
+    if (!Number.isFinite(gift) || gift < 0 || gift > 100) {
+      setError('Процент на подарки должен быть от 0 до 100.');
+      return;
+    }
+
+    if (!Number.isFinite(rainy) || rainy < 0 || rainy > 100) {
+      setError('Процент на черный день должен быть от 0 до 100.');
+      return;
+    }
+
+    if (gift + rainy > 100) {
+      setError('Сумма процентов не может превышать 100%.');
+      return;
+    }
+
+    closeModal();
+  }
+
+  /** Обнуляет балансы, месячные итоги и список расходов; проценты — в значения по умолчанию (10%). localStorage подтянется через useEffect. */
+  function handleResetAllData() {
+    const confirmed = window.confirm(
+      'Сбросить все данные? Все балансы и суммы за месяц станут 0, список расходов удалится, проценты распределения — 10% и 10%.',
+    );
+
+    if (!confirmed) return;
+
+    setMainBalance(0);
+    setGiftBalance(0);
+    setRainyBalance(0);
+    setIncomeTotal(0);
+    setExpenseTotal(0);
+    setExpenseItems([]);
+    setGiftPercent(10);
+    setRainyPercent(10);
+    setError('');
+    closeModal();
+  }
+
   return (
     <main className="app">
       {/* Декоративный анимированный фон, не несет смысловой нагрузки */}
@@ -170,43 +279,52 @@ function App() {
           финансовую подушку.
         </p>
 
-        <div className="container">
-          <article className="card">
-            <p>Основной баланс</p>
-            <h2>{formatRub(mainBalance)}</h2>
-            <span>Базовые траты</span>
-          </article>
+        <section className="dashboard-shell" aria-label="Сводка по счетам и лимиты">
+          <div className="dashboard-layout">
+            <div className="dashboard-cards">
+              <article
+                className="card card--main"
+                aria-labelledby="main-balance-heading"
+              >
+                <p className="card__eyebrow" id="main-balance-heading">
+                  Основной баланс
+                </p>
+                <h2 className="card__amount">{formatRub(mainBalance)}</h2>
+                <span className="card__hint">Доступно для повседневных трат</span>
+              </article>
 
-          <article className="card">
-            <p>Подарки</p>
-            <h2>{formatRub(giftBalance)}</h2>
-            <span>Копилка для приятностей</span>
-          </article>
+              <article className="card card--gifts card--stat">
+                <p className="card__eyebrow">Подарки</p>
+                <h3 className="card__amount">{formatRub(giftBalance)}</h3>
+                <span className="card__hint">Копилка для приятностей</span>
+              </article>
 
-          <article className="card">
-            <p>На черный день</p>
-            <h2>{formatRub(rainyBalance)}</h2>
-            <span>Резервный фонд</span>
-          </article>
+              <article className="card card--rainy card--stat">
+                <p className="card__eyebrow">На черный день</p>
+                <h3 className="card__amount">{formatRub(rainyBalance)}</h3>
+                <span className="card__hint">Резервный фонд</span>
+              </article>
 
-          <article className="card">
-            <p>Доходы за месяц</p>
-            <h2>{formatRub(incomeTotal)}</h2>
-            <span>Все поступления</span>
-          </article>
+              <article className="card card--income card--stat">
+                <p className="card__eyebrow">Доходы за месяц</p>
+                <h3 className="card__amount">{formatRub(incomeTotal)}</h3>
+                <span className="card__hint">Все поступления</span>
+              </article>
 
-          <article className="card">
-            <p>Расходы за месяц</p>
-            <h2>{formatRub(expenseTotal)}</h2>
-            <span>Все списания</span>
-          </article>
+              <article className="card card--expense card--stat">
+                <p className="card__eyebrow">Расходы за месяц</p>
+                <h3 className="card__amount">{formatRub(expenseTotal)}</h3>
+                <span className="card__hint">Все списания</span>
+              </article>
+            </div>
 
-          <article className="card accent">
-            <p>Доступно всего</p>
-            <h2>{formatRub(availableToSpend)}</h2>
-            <span>Сумма всех счетов</span>
-          </article>
-        </div>
+            <aside className="total-summary" aria-label="Сводка по всем счетам">
+              <p className="total-summary__label">Доступно всего</p>
+              <p className="total-summary__amount">{formatRub(availableToSpend)}</p>
+              <p className="total-summary__hint">Основной + подарки + резерв</p>
+            </aside>
+          </div>
+        </section>
 
         <div className="btn-container">
           {/* Кнопки открывают соответствующие формы в модальном окне */}
@@ -215,6 +333,9 @@ function App() {
           </button>
           <button className="add-outcome" type="button" onClick={openExpenseModal}>
             Добавить расход
+          </button>
+          <button className="settings-btn" type="button" onClick={openSettingsModal}>
+            Настройки
           </button>
         </div>
 
@@ -258,7 +379,9 @@ function App() {
             onClick={(event) => event.stopPropagation()}
           >
             <h3 id="modal-title">
-              {activeModal === 'income' ? 'Новый доход' : 'Новый расход'}
+              {activeModal === 'income' && 'Новый доход'}
+              {activeModal === 'expense' && 'Новый расход'}
+              {activeModal === 'settings' && 'Настройки'}
             </h3>
 
             {/* Один модальный контейнер, внутри выбираем форму по типу activeModal */}
@@ -283,7 +406,7 @@ function App() {
                       checked={saveToGifts}
                       onChange={(event) => setSaveToGifts(event.target.checked)}
                     />
-                    Откладывать 10% на подарки
+                    Откладывать {giftPercent}% на подарки
                   </label>
                   <label>
                     <input
@@ -291,7 +414,7 @@ function App() {
                       checked={saveToRainyDay}
                       onChange={(event) => setSaveToRainyDay(event.target.checked)}
                     />
-                    Откладывать 10% на черный день
+                    Откладывать {rainyPercent}% на черный день
                   </label>
                 </div>
 
@@ -306,7 +429,7 @@ function App() {
                   </button>
                 </div>
               </form>
-            ) : (
+            ) : activeModal === 'expense' ? (
               <form onSubmit={handleExpenseSubmit}>
                 <label htmlFor="expense-name-input">Название расхода</label>
                 <input
@@ -362,6 +485,58 @@ function App() {
                   </button>
                   <button type="button" className="ghost" onClick={closeModal}>
                     Отмена
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSettingsSubmit}>
+                <label htmlFor="gift-percent-input">Процент на подарки (%)</label>
+                <input
+                  id="gift-percent-input"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={giftPercent}
+                  onChange={(event) => setGiftPercent(event.target.value)}
+                  placeholder="Например, 10"
+                  required
+                />
+
+                <label htmlFor="rainy-percent-input">Процент на черный день (%)</label>
+                <input
+                  id="rainy-percent-input"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value={rainyPercent}
+                  onChange={(event) => setRainyPercent(event.target.value)}
+                  placeholder="Например, 10"
+                  required
+                />
+
+                {error && <p className="error">{error}</p>}
+
+                <div className="modal-actions">
+                  <button type="submit" className="settings-btn">
+                    Сохранить настройки
+                  </button>
+                  <button type="button" className="ghost" onClick={closeModal}>
+                    Отмена
+                  </button>
+                </div>
+
+                <div className="settings-danger-zone" role="group" aria-label="Сброс данных">
+                  <p className="settings-danger-hint">
+                    Удалить все сохранённые суммы и карточки расходов; проценты вернутся к 10%.
+                  </p>
+                  <button
+                    type="button"
+                    className="reset-data"
+                    onClick={handleResetAllData}
+                  >
+                    Сбросить данные
                   </button>
                 </div>
               </form>
